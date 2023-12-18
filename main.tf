@@ -89,3 +89,41 @@ resource "aws_lambda_function_url" "this" {
 output "webhook_url" {
   value = aws_lambda_function_url.this.function_url
 }
+
+import {
+  id = "pskqpjxiuf"
+  to = aws_api_gateway_rest_api.this
+}
+resource "aws_api_gateway_rest_api" "this" {
+  name = "HCP Packer"
+  endpoint_configuration {
+    types = ["EDGE"]
+  }
+}
+
+# import {
+#   id = 
+# }
+# resource "aws_api_gateway_deployment" "this" {
+#   rest_api_id = aws_api_gateway_rest_api.this.id
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
+
+# resource "aws_api_gateway_stage" "this" {
+#   deployment_id = aws_api_gateway_deployment.this.id
+#   rest_api_id   = aws_api_gateway_rest_api.this.id
+#   stage_name    = "this"
+# }
+
+import {
+  id = "pskqpjxiuf"
+  to = aws_api_gateway_resource.this
+}
+resource "aws_api_gateway_resource" "this" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  parent_id = aws_api_gateway_rest_api.this.root_resource_id
+  path_part = "/{proxy+}"
+  
+}

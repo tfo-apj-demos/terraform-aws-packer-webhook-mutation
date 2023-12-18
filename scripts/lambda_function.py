@@ -4,8 +4,6 @@ import json
 import urllib3
 import hmac
 import hashlib
-from hcp_session import Session
-from hcp_packer_iterations import Iteration
 
 # --- Things we need for GitHub webhook
 # https://docs.github.com/en/webhooks/webhook-events-and-payloads#repository_dispatch
@@ -13,13 +11,16 @@ from hcp_packer_iterations import Iteration
 # https://docs.github.com/en/webhooks/testing-and-troubleshooting-webhooks/viewing-webhook-deliveries
 
 def lambda_handler(event, context):
+    print(event['headers'])
+    print(event['body'])
     # --- Check to see if the signature header has been passed.
     try:
-        signature = event['headers']['x-hcp-webhook-signature']
+        signature = event['headers']['X-Hcp-Webhook-Signature']
     except KeyError:
         return({
-                    'response': 403,
-                    'body': 'Unauthorized: HMAC signature mismatch.'
+                    'statusCode': 403,
+                    'body': 'HMAC signature not provided.',
+                    'isBase64Encoded': False
                 }) 
 
     # --- Verify the HMAC, then check the eventAction value to determine what to do.
@@ -31,26 +32,31 @@ def lambda_handler(event, context):
                 return verify()
             case 'revoke':
                 return revoke(body)
+            case 'complete':
+                return complete(body)
             case 'delete':
                 return delete(body)
             case _:
                 return({
-                    'response': 400,
-                    'body': 'No suitable event action found in request.'
-                })
+                    'statusCode': 400,
+                    'body': f'Action {body["eventAction"]} found in request has no defined behaviour.',
+                    'isBase64Encoded': False
+                }) 
     else:
         return({
-                    'response': 403,
-                    'body': 'Unauthorized: HMAC signature mismatch.'
+                    'statusCode': 403,
+                    'body': 'Unauthorized: HMAC signature mismatch.',
+                    'isBase64Encoded': False
                 }) 
 
 
 # --- Event Action functions
 def verify():
-    response = json.dumps({
-        'response': '200',
-        'body': 'verification successful'
-    })
+    response = {
+        'statusCode': '200',
+        'body': 'verification successful',
+        'isBase64Encoded': False
+    }
     return(response)
 
 def revoke(body):
@@ -69,13 +75,6 @@ def revoke(body):
 
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
-# --- To do: create function on completion of a build that grabs the bucket, 
-# --- lists out the iterations and then grabs the most recent one to delete.
-# def complete(body):
-#     token = get_secrets(os.environ.get('GITHUB_TOKEN_ARN'))
-#     # authenticate to HCP
-#     # get iterations for bucket slug(slug in payload)
-#     # 
 
 def delete(body):
     token = get_secrets(os.environ.get('GITHUB_TOKEN_ARN'))
@@ -95,7 +94,7 @@ def delete(body):
 
 # --- Helper functions
 def verify_hmac(event):
-    signature = event['headers']['x-hcp-webhook-signature']
+    signature = event['headers']['X-Hcp-Webhook-Signature']
     secret = bytes(get_secrets(os.environ.get('HMAC_TOKEN_ARN')), 'utf-8')
     message = bytes(event['body'], 'utf-8')
     hash = hmac.new(secret, message, hashlib.sha512)
@@ -135,9 +134,3 @@ def trigger_github_action(payload, token, dispactch_url):
             'response': response.status,    
             'body': response.data
             }
-
-
-
-
-
-
