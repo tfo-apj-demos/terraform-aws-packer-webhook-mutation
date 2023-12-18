@@ -129,7 +129,7 @@ resource "aws_api_gateway_rest_api" "this" {
 # }
 
 import {
-  id = "pskqpjxiuf/cioblx"
+  id = "cioblx"
   to = aws_api_gateway_resource.this
 }
 resource "aws_api_gateway_resource" "this" {
