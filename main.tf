@@ -140,7 +140,7 @@ resource "aws_api_gateway_method" "this" {
 }
 
 import {
-  id = "t8j4t4inja/cioblx/POST"
+  id = "t8j4t4inja/cioblx/ANY"
   to = aws_api_gateway_integration.this
 }
 
