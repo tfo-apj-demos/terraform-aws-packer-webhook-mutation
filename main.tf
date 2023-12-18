@@ -101,15 +101,16 @@ resource "aws_api_gateway_rest_api" "this" {
   }
 }
 
-# import {
-#   id = 
-# }
-# resource "aws_api_gateway_deployment" "this" {
-#   rest_api_id = aws_api_gateway_rest_api.this.id
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
+import {
+  id = "t8j4t4inja/idz1rr"
+  to = aws_api_gateway_deployment.this
+}
+resource "aws_api_gateway_deployment" "this" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
 import {
   id = "t8j4t4inja/test"
