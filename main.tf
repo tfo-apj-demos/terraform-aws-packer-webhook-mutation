@@ -118,6 +118,17 @@ resource "aws_api_gateway_rest_api" "this" {
 # }
 
 import {
+  id = "t8j4t4inja/pskqpjxiuf"
+  to = aws_api_gateway_resource.root
+}
+
+resource "aws_api_gateway_resource" "root" {
+  rest_api_id = "t8j4t4inja"
+  parent_id = "t8j4t4inja"
+  path_part = "/"
+}
+
+import {
   id = "pskqpjxiuf/cioblx"
   to = aws_api_gateway_resource.this
 }
