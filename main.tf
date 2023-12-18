@@ -118,12 +118,13 @@ resource "aws_api_gateway_rest_api" "this" {
 # }
 
 import {
-  id = "t8j4t4inja/pskqpjxiuf"
+  id = "pskqpjxiuf/cioblx"
   to = aws_api_gateway_resource.this
 }
 resource "aws_api_gateway_resource" "this" {
-  rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id = aws_api_gateway_rest_api.this.root_resource_id
-  path_part = "/{proxy+}"
-  
+  rest_api_id = "t8j4t4inja"
+  parent_id = "pskqpjxiuf"
+  path_part = "{proxy+}"
 }
+
+
