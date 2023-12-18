@@ -91,7 +91,7 @@ output "webhook_url" {
 }
 
 import {
-  id = "t8j4t4inja"
+  id = "t8j4t4inja/pskqpjxiuf"
   to = aws_api_gateway_rest_api.this
 }
 resource "aws_api_gateway_rest_api" "this" {
@@ -117,13 +117,13 @@ resource "aws_api_gateway_rest_api" "this" {
 #   stage_name    = "this"
 # }
 
-import {
-  id = "pskqpjxiuf"
-  to = aws_api_gateway_resource.this
-}
-resource "aws_api_gateway_resource" "this" {
-  rest_api_id = aws_api_gateway_rest_api.this.id
-  parent_id = aws_api_gateway_rest_api.this.root_resource_id
-  path_part = "/{proxy+}"
+# import {
+#   id = "pskqpjxiuf"
+#   to = aws_api_gateway_resource.this
+# }
+# resource "aws_api_gateway_resource" "this" {
+#   rest_api_id = aws_api_gateway_rest_api.this.id
+#   parent_id = aws_api_gateway_rest_api.this.root_resource_id
+#   path_part = "/{proxy+}"
   
-}
+# }
