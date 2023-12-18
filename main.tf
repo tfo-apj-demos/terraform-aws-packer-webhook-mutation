@@ -91,7 +91,7 @@ output "webhook_url" {
 }
 
 import {
-  id = "t8j4t4inja/pskqpjxiuf"
+  id = "t8j4t4inja"
   to = aws_api_gateway_rest_api.this
 }
 resource "aws_api_gateway_rest_api" "this" {
