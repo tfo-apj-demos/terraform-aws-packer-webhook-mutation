@@ -113,7 +113,7 @@ resource "aws_api_gateway_rest_api" "this" {
 
 import {
   id = "t8j4t4inja/test"
-  to = aws_api_gateway_stage
+  to = aws_api_gateway_stage.this
 }
 
 resource "aws_api_gateway_stage" "this" {
