@@ -111,25 +111,21 @@ resource "aws_api_gateway_rest_api" "this" {
 #   }
 # }
 
-# resource "aws_api_gateway_stage" "this" {
-#   deployment_id = aws_api_gateway_deployment.this.id
-#   rest_api_id   = aws_api_gateway_rest_api.this.id
-#   stage_name    = "this"
-# }
-
 import {
-  id = "t8j4t4inja/cioblx"
-  to = aws_api_gateway_resource.this
+  id = "t8j4t4inja/test"
+  to = aws_api_gateway_stage
 }
+
+resource "aws_api_gateway_stage" "this" {
+  deployment_id = aws_api_gateway_deployment.this.id
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  stage_name    = "test"
+}
+
 resource "aws_api_gateway_resource" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   parent_id = aws_api_gateway_rest_api.this.root_resource_id
   path_part = "{proxy+}"
-}
-
-import {
-  id = "t8j4t4inja/cioblx/ANY"
-  to = aws_api_gateway_method.this
 }
 
 resource "aws_api_gateway_method" "this" {
@@ -137,11 +133,6 @@ resource "aws_api_gateway_method" "this" {
   resource_id   = aws_api_gateway_resource.this.id
   http_method   = "ANY"
   authorization = "NONE"
-}
-
-import {
-  id = "t8j4t4inja/cioblx/ANY"
-  to = aws_api_gateway_integration.this
 }
 
 resource "aws_api_gateway_integration" "this" {
