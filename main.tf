@@ -138,11 +138,16 @@ resource "aws_api_gateway_resource" "this" {
   path_part = "{proxy+}"
 }
 
-# resource "aws_api_gateway_method" "this" {
-#   rest_api_id   = aws_api_gateway_rest_api.this.id
-#   resource_id   = aws_api_gateway_resource.this.id
-#   http_method   = "POST"
-#   authorization = "NONE"
-# }
+import {
+  id = "t8j4t4inja/cioblx/ANY"
+  to = aws_api_gateway_method.this
+}
+
+resource "aws_api_gateway_method" "this" {
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  resource_id   = aws_api_gateway_resource.this.id
+  http_method   = "ANY"
+  authorization = "NONE"
+}
 
 
