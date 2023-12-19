@@ -67,7 +67,7 @@ resource "aws_iam_policy" "invoke_lambda" {
     "Statement": [
       {
         "Effect": "Allow"
-        "Action": "InvokeLambda-PackerFunction",
+        "Action": "lambda:InvokeFunction",
         "Resource": aws_lambda_function.this.arn
       }
     ]
