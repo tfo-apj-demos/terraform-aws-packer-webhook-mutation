@@ -92,6 +92,22 @@ def delete(body):
 
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
+def complete(body):
+    headers = {
+        'Content-type': 'application/json'
+    }
+    payload = {
+        'text': f'A new build in {body["eventPayload"]["bucket"]["slug"]} has successfully completed.'
+    }
+    http = urllib3.PoolManager()
+    slack_url = get_secrets(os.environ.get('SLACK_URL'))
+    response = http.request('POST', slack_url, headers=headers)
+    return({ 
+        'statusCode': response.status,    
+        'body': response.data,
+        'isBase64Encoded': False
+    })
+
 # --- Helper functions
 def verify_hmac(event):
     signature = event['headers']['X-Hcp-Webhook-Signature']
@@ -130,7 +146,8 @@ def trigger_github_action(payload, token, dispactch_url):
                             body = payload, 
                             headers = headers
                             )
-    return { 
-            'response': response.status,    
-            'body': response.data
-            }
+    return({ 
+        'statusCode': response.status,    
+        'body': response.data,
+        'isBase64Encoded': False
+    })

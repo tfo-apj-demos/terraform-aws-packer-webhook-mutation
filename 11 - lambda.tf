@@ -2,7 +2,8 @@
 data "aws_secretsmanager_secret" "this" {
   for_each = toset([
     "packer-revocation/token",
-    "packer-revocation/hmac_token"
+    "packer-revocation/hmac_token",
+    "packer-revocation/slack_url"
   ])
   name = each.value
 }
@@ -32,6 +33,7 @@ resource "aws_lambda_function" "this" {
       PARAMETERS_SECRETS_EXTENSION_LOG_LEVEL = "debug"
       HMAC_TOKEN_ARN = data.aws_secretsmanager_secret.this["packer-revocation/hmac_token"].arn
       GITHUB_TOKEN_ARN = data.aws_secretsmanager_secret.this["packer-revocation/token"].arn
+      SLACK_URL = data.aws_secretsmanager_secret.this["packer-revocation/slack_url"].arn
       SECRETS_EXTENSION_HTTP_PORT = 2773
     }
   }
