@@ -101,7 +101,7 @@ def complete(body):
     }
     jsonPayload = json.dumps(payload).encode('UTF-8')
     http = urllib3.PoolManager()
-    slack_url = get_secrets(os.environ.get('SLACK_URL'))
+    slack_url = json.dumps(get_secrets(os.environ.get('SLACK_URL')))
     response = http.request('POST', slack_url, headers=headers, body=jsonPayload)
     return({ 
         'statusCode': response.status,    
