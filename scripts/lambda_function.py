@@ -99,9 +99,10 @@ def complete(body):
     payload = {
         'text': f'A new build in {body["eventPayload"]["bucket"]["slug"]} has successfully completed.'
     }
+    jsonPayload = json.dumps(payload).encode('UTF-8')
     http = urllib3.PoolManager()
     slack_url = get_secrets(os.environ.get('SLACK_URL'))
-    response = http.request('POST', slack_url, headers=headers)
+    response = http.request('POST', slack_url, headers=headers, body=jsonPayload)
     return({ 
         'statusCode': response.status,    
         'body': response.data,
