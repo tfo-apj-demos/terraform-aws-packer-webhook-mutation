@@ -7,6 +7,10 @@ resource "aws_api_gateway_rest_api" "this" {
 
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id
+  depends_on = [
+    aws_api_gateway_integration.this
+  ]
+
   lifecycle {
     create_before_destroy = true
   }
@@ -16,6 +20,7 @@ resource "aws_api_gateway_stage" "this" {
   deployment_id = aws_api_gateway_deployment.this.id
   rest_api_id   = aws_api_gateway_rest_api.this.id
   stage_name    = "test"
+
 }
 
 resource "aws_api_gateway_resource" "this" {
