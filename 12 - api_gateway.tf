@@ -38,5 +38,5 @@ resource "aws_api_gateway_integration" "this" {
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.this.invoke_arn
-  credentials = "arn:aws:iam::542594126947:role/APIGWInvokeLambda"
+  credentials             = aws_iam_role.api_gateway.arn #"arn:aws:iam::542594126947:role/APIGWInvokeLambda"
 }

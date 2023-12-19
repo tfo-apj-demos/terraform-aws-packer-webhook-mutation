@@ -83,8 +83,7 @@ resource "aws_iam_role" "api_gateway" {
   name               = "APIGWInvokeLambda"
   assume_role_policy = data.aws_iam_policy_document.api_gateway.json
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    aws_iam_policy.retrieve_secret.arn
+    aws_iam_policy.invoke_lambda.arn
   ]
 
 }
