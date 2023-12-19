@@ -48,7 +48,7 @@ resource "aws_lambda_permission" "this" {
   statement_id = "url"
 }
 
-# --- Role for API Gateway to invoke lambda function
+# --- Configure role for API Gateway to invoke lambda function
 data "aws_iam_policy_document" "api_gateway" {
   statement {
     effect = "Allow"
@@ -72,11 +72,6 @@ resource "aws_iam_policy" "invoke_lambda" {
       }
     ]
   })
-}
-
-import {
-  id = "APIGWInvokeLambda"
-  to = aws_iam_role.api_gateway
 }
 
 resource "aws_iam_role" "api_gateway" {
