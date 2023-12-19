@@ -26,6 +26,11 @@ resource "aws_iam_policy" "retrieve_secret" {
       "Effect": "Allow",
       "Action": "secretsmanager:GetSecretValue",
       "Resource": data.aws_secretsmanager_secret.this["packer-revocation/hmac_token"].arn
+    },
+        {
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": data.aws_secretsmanager_secret.this["packer-revocation/slack_url"].arn
     }
   ]
 })
