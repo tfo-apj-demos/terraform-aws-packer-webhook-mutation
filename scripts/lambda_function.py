@@ -81,17 +81,17 @@ def revoke(body):
 
 def delete(body):
     token = get_secrets(os.environ.get('GITHUB_TOKEN_ARN'))
-    image_ids = return_image_id(body, provider="vsphere")
+    image_names = return_image_id(body, provider="vsphere")
     payload = {
             'event_type': 'image_deletion',
             'client_payload': {
-                'image_ids': image_ids
+                'image_names': image_names
             }
         }
     dispatch_url='https://api.github.com/repos/tfo-apj-demos/powershell-packer-revocation/dispatches'
     jsonPayload = json.dumps(payload).encode('UTF-8')
     
-    message = f'The following image(s) have been deleted: {image_ids}.'
+    message = f'The following image(s) have been deleted: {image_names}.'
     send_slack_notification(message)
 
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
