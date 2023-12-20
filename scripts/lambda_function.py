@@ -72,44 +72,34 @@ def revoke(body):
         }
     dispatch_url='https://api.github.com/repos/tfo-apj-demos/powershell-packer-revocation/dispatches'
     jsonPayload = json.dumps(payload).encode('UTF-8')
+    
+    message = f'Iteration version {body["eventPayload"]["iteration"]["version"]} for bucket {body["eventPayload"]["bucket"]["slug"]} has been revoked.'
+    send_slack_notification(message)
 
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
 
 def delete(body):
     token = get_secrets(os.environ.get('GITHUB_TOKEN_ARN'))
+    image_ids = return_image_id(body, provider="vsphere")
     payload = {
             'event_type': 'image_deletion',
             'client_payload': {
-                'iteration_id': body['eventPayload']['iteration']['id'],
-                'bucket_slug': body['eventPayload']['bucket']['slug'],
-                'project_id': body['eventPayload']['project_id'],
-                'organization_id': body['eventPayload']['organization_id'],
+                'image_ids': image_ids
             }
         }
     dispatch_url='https://api.github.com/repos/tfo-apj-demos/powershell-packer-revocation/dispatches'
     jsonPayload = json.dumps(payload).encode('UTF-8')
+    
+    message = f'The following image(s) have been deleted: {image_ids}.'
+    send_slack_notification(message)
 
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
 def complete(body):
-    headers = {
-        'Content-type': 'application/json'
-    }
-    payload = {
-        'text': f'A new build in {body["eventPayload"]["bucket"]["slug"]} has successfully completed.'
-    }
-    jsonPayload = json.dumps(payload).encode('UTF-8')
-    http = urllib3.PoolManager()
-    slack_url = json.dumps(get_secrets(os.environ.get('SLACK_URL')))
-    print(get_secrets(os.environ.get('SLACK_URL')))
-    print(slack_url)
-    response = http.request('POST', slack_url, headers=headers, body=jsonPayload)
-    return({ 
-        'statusCode': response.status,    
-        'body': response.data,
-        'isBase64Encoded': False
-    })
+    message = f'A new build in {body["eventPayload"]["bucket"]["slug"]} has successfully completed.'
+    return(send_slack_notification(message))
+    
 
 # --- Helper functions
 def verify_hmac(event):
@@ -117,7 +107,6 @@ def verify_hmac(event):
     secret = bytes(get_secrets(os.environ.get('HMAC_TOKEN_ARN')), 'utf-8')
     message = bytes(event['body'], 'utf-8')
     hash = hmac.new(secret, message, hashlib.sha512)
-
     compare_digest = hmac.compare_digest(hash.hexdigest(), signature)
     return(compare_digest)
 
@@ -154,3 +143,28 @@ def trigger_github_action(payload, token, dispactch_url):
         'body': response.data,
         'isBase64Encoded': False
     })
+    
+def send_slack_notification(message):
+    headers = {
+        'Content-type': 'application/json'
+    }
+    payload = {
+        'text': f'{message}'
+    }
+    jsonPayload = json.dumps(payload).encode('UTF-8')
+    http = urllib3.PoolManager()
+    slack_url = get_secrets(os.environ.get('SLACK_URL'))
+    response = http.request('POST', slack_url, headers=headers, body=jsonPayload)
+    return({ 
+        'statusCode': response.status,    
+        'body': response.data,
+        'isBase64Encoded': False
+    })
+    
+def return_image_id(body, provider):
+    image_ids = []
+    for build in body['eventPayload']['builds']:
+        if build['cloud_provider'] == provider:
+            for image in build["images"]: 
+                image_ids.append(image["image_id"]) 
+    return(image_ids)
