@@ -23,11 +23,11 @@ def lambda_handler(event, context):
                     'isBase64Encoded': False
                 }) 
 
-    # --- Verify the HMAC, then check the eventAction value to determine what to do.
+    # --- Verify the HMAC, then check the event_action value to determine what to do.
     if verify_hmac(event):
         body = json.loads(event['body'])
 
-        match body['eventAction']:
+        match body['event_action']:
             case 'test':
                 return verify()
             case 'revoke':
@@ -39,7 +39,7 @@ def lambda_handler(event, context):
             case _:
                 return({
                     'statusCode': 400,
-                    'body': f'Action {body["eventAction"]} found in request has no defined behaviour.',
+                    'body': f'Action {body["event_action"]} found in request has no defined behaviour.',
                     'isBase64Encoded': False
                 }) 
     else:
@@ -64,16 +64,16 @@ def revoke(body):
     payload = {
             'event_type': 'image_revocation',
             'client_payload': {
-                'iteration_id': body['eventPayload']['iteration']['id'],
-                'bucket_slug': body['eventPayload']['bucket']['slug'],
-                'project_id': body['eventPayload']['project_id'],
-                'organization_id': body['eventPayload']['organization_id'],
+                'iteration_id': body['event_payload']['iteration']['id'],
+                'bucket_slug': body['event_payload']['bucket']['slug'],
+                'project_id': body['event_payload']['project_id'],
+                'organization_id': body['event_payload']['organization_id'],
             }
         }
     dispatch_url='https://api.github.com/repos/tfo-apj-demos/powershell-packer-revocation/dispatches'
     jsonPayload = json.dumps(payload).encode('UTF-8')
     
-    message = f'Iteration version {body["eventPayload"]["iteration"]["version"]} for bucket {body["eventPayload"]["bucket"]["slug"]} has been revoked.'
+    message = f'Iteration version {body["event_payload"]["iteration"]["version"]} for bucket {body["event_payload"]["bucket"]["slug"]} has been revoked.'
     send_slack_notification(message)
 
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
@@ -97,7 +97,7 @@ def delete(body):
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
 def complete(body):
-    message = f'A new build in {body["eventPayload"]["bucket"]["slug"]} has successfully completed.'
+    message = f'A new build in {body["event_payload"]["bucket"]["slug"]} has successfully completed.'
     return(send_slack_notification(message))
     
 
@@ -163,7 +163,7 @@ def send_slack_notification(message):
     
 def return_image_id(body, provider):
     image_ids = []
-    for build in body['eventPayload']['builds']:
+    for build in body['event_payload']['builds']:
         if build['cloud_provider'] == provider:
             for image in build["images"]: 
                 image_ids.append(image["image_id"]) 
