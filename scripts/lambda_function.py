@@ -97,9 +97,35 @@ def delete(body):
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
 def complete(body):
-    message = f'A new build in {body["eventPayload"]["bucket"]["slug"]} has successfully completed.'
-    return(send_slack_notification(message))
+    bucket_slug = body["eventPayload"]["bucket"]["slug"]
+    message = f'A new build in {bucket_slug} has successfully completed.'
+    send_slack_notification(message)
     
+    hcpToken = get_secrets(os.environ.get('hcpToken'))
+    organization_id = get_secrets(os.environ.get('organization_id'))
+    project_id = get_secrets(os.environ.get('project_id'))
+    channel_slug = get_secrets(os.environ.get('channel_slug'))
+
+    iterations_data = get_iterations(organization_id, project_id, bucket_slug, hcpToken)
+    if iterations_data:
+        iterations = iterations_data.get("iterations", [])
+        iteration_id = get_n_minus_one_iteration_id(iterations)
+        if iteration_id:
+            if update_channel(organization_id, project_id, bucket_slug, channel_slug, iteration_id, hcpToken):
+                # Success - send notification about channel update
+                update_message = f"Channel '{channel_slug}' was successfully updated for iteration ID {iteration_id} in bucket '{bucket_slug}'."
+                send_slack_notification(update_message)
+            else:
+                # Handle failure to update channel
+                error_message = f"Failed to update the channel for iteration ID {iteration_id} in bucket '{bucket_slug}'."
+                send_slack_notification(error_message)
+        else:
+            # Handle case where iteration_id is not found
+            print("N-1 iteration ID not found.")
+    else:
+        # Handle case where iterations data is not retrieved
+        print("Failed to retrieve iterations.")
+    return()
 
 # --- Helper functions
 def verify_hmac(event):
@@ -168,3 +194,40 @@ def return_image_id(body, provider):
             for image in build["images"]: 
                 image_ids.append(image["image_id"]) 
     return(image_ids)
+
+def get_iterations(organization_id, project_id, bucket_slug, hcpToken):
+    endpoint = f"https://api.cloud.hashicorp.com/packer/2021-04-30/organizations/{organization_id}/projects/{project_id}/images/{bucket_slug}/iterations"
+    headers = {
+        'Authorization': f'Bearer {hcpToken}'
+    }
+    http = urllib3.PoolManager()
+    response = http.request('GET', endpoint, headers=headers)
+    if response.status != 200:
+        # Handle error
+        return None
+
+    return json.loads(response.data.decode('utf-8'))
+
+def get_n_minus_one_iteration_id(iterations):
+    # Assuming iterations are sorted with the latest iteration first
+    if len(iterations) >= 2:
+        n_minus_one_iteration = iterations[1]  # Second item in the list
+        return n_minus_one_iteration.get('id')
+    else:
+        # Handle case where there are not enough iterations
+        return None
+
+def update_channel(organization_id, project_id, bucket_slug, channel_slug, iteration_id, hcpToken):
+    endpoint = f"https://api.cloud.hashicorp.com/packer/2021-04-30/organizations/{organization_id}/projects/{project_id}/images/{bucket_slug}/channels/{channel_slug}"
+    payload = {
+        "iteration_id": iteration_id
+    }
+    headers = {
+        'Authorization': f'Bearer {hcpToken}',
+        'Content-Type': 'application/json'
+    }
+    http = urllib3.PoolManager()
+    encoded_payload = json.dumps(payload).encode('UTF-8')
+    response = http.request('PATCH', endpoint, body=encoded_payload, headers=headers)
+
+    return response.status == 200
