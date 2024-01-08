@@ -97,35 +97,38 @@ def delete(body):
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
 def complete(body):
-    bucket_slug = body["event_payload"]["bucket"]["slug"]
-    message = f'A new build in {bucket_slug} has successfully completed.'
-    send_slack_notification(message)
+    message = f'A new build in {body["event_payload"]["bucket"]["slug"]} has successfully completed.'
+    return(send_slack_notification(message))
+    # bucket_slug = body["event_payload"]["bucket"]["slug"]
+    # message = f'A new build in {bucket_slug} has successfully completed.'
     
-    hcpToken = get_secrets(os.environ.get('hcpToken'))
-    organization_id = get_secrets(os.environ.get('organization_id'))
-    project_id = get_secrets(os.environ.get('project_id'))
-    channel_slug = get_secrets(os.environ.get('channel_slug'))
+    # send_slack_notification(message)
+    
+    # hcpToken = get_secrets(os.environ.get('hcpToken'))
+    # organization_id = get_secrets(os.environ.get('organization_id'))
+    # project_id = get_secrets(os.environ.get('project_id'))
+    # channel_slug = get_secrets(os.environ.get('channel_slug'))
 
-    iterations_data = get_iterations(organization_id, project_id, bucket_slug, hcpToken)
-    if iterations_data:
-        iterations = iterations_data.get("iterations", [])
-        iteration_id = get_n_minus_one_iteration_id(iterations)
-        if iteration_id:
-            if update_channel(organization_id, project_id, bucket_slug, channel_slug, iteration_id, hcpToken):
-                # Success - send notification about channel update
-                update_message = f"Channel '{channel_slug}' was successfully updated for iteration ID {iteration_id} in bucket '{bucket_slug}'."
-                send_slack_notification(update_message)
-            else:
-                # Handle failure to update channel
-                error_message = f"Failed to update the channel for iteration ID {iteration_id} in bucket '{bucket_slug}'."
-                send_slack_notification(error_message)
-        else:
-            # Handle case where iteration_id is not found
-            print("N-1 iteration ID not found.")
-    else:
-        # Handle case where iterations data is not retrieved
-        print("Failed to retrieve iterations.")
-    return()
+    # iterations_data = get_iterations(organization_id, project_id, bucket_slug, hcpToken)
+    # if iterations_data:
+    #     iterations = iterations_data.get("iterations", [])
+    #     iteration_id = get_n_minus_one_iteration_id(iterations)
+    #     if iteration_id:
+    #         if update_channel(organization_id, project_id, bucket_slug, channel_slug, iteration_id, hcpToken):
+    #             # Success - send notification about channel update
+    #             update_message = f"Channel '{channel_slug}' was successfully updated for iteration ID {iteration_id} in bucket '{bucket_slug}'."
+    #             send_slack_notification(update_message)
+    #         else:
+    #             # Handle failure to update channel
+    #             error_message = f"Failed to update the channel for iteration ID {iteration_id} in bucket '{bucket_slug}'."
+    #             send_slack_notification(error_message)
+    #     else:
+    #         # Handle case where iteration_id is not found
+    #         print("N-1 iteration ID not found.")
+    # else:
+    #     # Handle case where iterations data is not retrieved
+    #     print("Failed to retrieve iterations.")
+    # return()
 
 # --- Helper functions
 def verify_hmac(event):
