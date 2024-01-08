@@ -1,0 +1,37 @@
+@hcpAuthUrl=https://auth.idp.hashicorp.com/oauth2/token
+@hcpApiBaseUrl=https://api.cloud.hashicorp.com
+@audience=https://api.hashicorp.cloud
+@clientId=
+@clientSecret=
+@authToken=
+@organizationId=
+@projectId=
+@bucketSlug=
+@identifierKey=
+@identifierValue=
+
+###
+# Authenticate to HCP and Get Access Token
+# @login
+POST {{hcpAuthUrl}}
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{clientId}}&client_secret={{clientSecret}}&grant_type=client_credentials&audience={{audience}}
+
+###
+# Get HCP Packer Buckets
+GET {{hcpApiBaseUrl}}/packer/2021-04-30/organizations/{{organizationId}}/projects/{{projectId}}/images?pagination.page_size=10
+Authorization: Bearer {{authToken}}
+
+###
+# List Iterations in HCP Packer
+
+GET {{hcpApiBaseUrl}}/packer/2021-04-30/organizations/{{organizationId}}/projects/{{projectId}}/images/{{bucketSlug}}/iterations
+Authorization: Bearer {{authToken}}
+
+###
+# Get a Specific Iteration in HCP Packer
+
+GET {{hcpApiBaseUrl}}/packer/2021-04-30/organizations/{{organizationId}}/projects/{{projectId}}/images/{{bucketSlug}}/iteration?{{identifierKey}}={{identifierValue}}
+Authorization: Bearer {{authToken}}
+
