@@ -71,7 +71,7 @@ def revoke(body):
     dispatch_url='https://api.github.com/repos/tfo-apj-demos/powershell-packer-revocation/dispatches'
     jsonPayload = json.dumps(payload).encode('UTF-8')
     
-    message = f'Iteration version {body["event_payload"]["iteration"]["version"]} for bucket {body["event_payload"]["bucket"]["slug"]} has been revoked.'
+    message = f'Iteration version {body["event_payload"]["version"]["name"]} for bucket {body["event_payload"]["bucket"]["slug"]} has been revoked.'
     send_slack_notification(message)
 
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
