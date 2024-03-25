@@ -192,10 +192,10 @@ def send_slack_notification(message):
     
 def return_image_id(body, provider):
     image_ids = []
-    for artifact in body['event_payload']['builds']['artifacts']:
-        #if build['cloud_provider'] == provider:
-        #    for image in build["images"]: 
-        image_ids.append(["external_identifier"])
+    for build in body['event_payload']['builds']:
+        if build['platform'] == provider:
+            for artifact in build["artifacts"]: 
+                image_ids.append(artifact["external_identifier"]) 
     return(image_ids)
 
 def get_iterations(organization_id, project_id, bucket_slug, hcpToken):
