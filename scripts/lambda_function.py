@@ -61,13 +61,11 @@ def verify():
 
 def revoke(body):
     token = get_secrets(os.environ.get('GITHUB_TOKEN_ARN'))
+    image_names = return_image_id(body, provider="vsphere")
     payload = {
             'event_type': 'image_revocation',
             'client_payload': {
-                'iteration_id': body['event_payload']['iteration']['id'],
-                'bucket_slug': body['event_payload']['bucket']['slug'],
-                'project_id': body['event_payload']['project_id'],
-                'organization_id': body['event_payload']['organization_id'],
+                'image_names': image_names
             }
         }
     dispatch_url='https://api.github.com/repos/tfo-apj-demos/powershell-packer-revocation/dispatches'
