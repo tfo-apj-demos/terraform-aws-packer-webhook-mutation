@@ -95,7 +95,7 @@ def delete(body):
     return(trigger_github_action(payload=jsonPayload, token=token, dispactch_url=dispatch_url))
 
 def complete(body):
-    message = f'A new build in {body["event_payload"]["bucket"]["slug"]} has successfully completed.'
+    message = f'A new build in {body["event_payload"]["bucket"]["name"]} has successfully completed.'
     return(send_slack_notification(message))
     # bucket_slug = body["event_payload"]["bucket"]["slug"]
     # message = f'A new build in {bucket_slug} has successfully completed.'
