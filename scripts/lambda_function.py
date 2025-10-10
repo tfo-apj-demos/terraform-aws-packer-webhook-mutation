@@ -72,22 +72,40 @@ def handle_revocation(payload):
             print("Warning: GitHub token not configured")
             return handle_slack_only(payload, 'revocation')
 
+        # Extract the required data from HCP webhook payload
+        event_payload = payload.get('event_payload', {})
+        bucket_data = event_payload.get('bucket', {})
+        version_data = event_payload.get('version', {})
+        
+        # Map HCP payload to GitHub workflow expected format
+        bucket_slug = bucket_data.get('slug', '')
+        iteration_id = version_data.get('id', '')  # In HCP, version.id is the iteration ID
+        organization_id = event_payload.get('organization_id', '')
+        project_id = event_payload.get('project_id', '')
+        
+        # Also get image names for reference
         image_names = extract_image_identifiers(payload, "vsphere")
         
         dispatch_payload = {
             'event_type': 'image_revocation',
             'client_payload': {
-                'image_names': image_names
+                'bucket_slug': bucket_slug,
+                'iteration_id': iteration_id,
+                'organization_id': organization_id,
+                'project_id': project_id,
+                'image_names': image_names  # Keep for debugging/reference
             }
         }
+        
+        print(f"Sending GitHub dispatch with payload: {dispatch_payload}")
         
         # Send to GitHub
         github_result = dispatch_to_github(dispatch_payload, github_token)
         
         # Send Slack notification
-        version_name = payload.get('event_payload', {}).get('version', {}).get('name', 'unknown')
-        bucket_name = payload.get('event_payload', {}).get('bucket', {}).get('name', 'unknown')
-        message = f'Version {version_name} in bucket {bucket_name} has been revoked.'
+        version_name = version_data.get('name', 'unknown')
+        bucket_name = bucket_data.get('name', 'unknown')
+        message = f'Version {version_name} in bucket {bucket_name} has been revoked. Triggering cleanup workflow.'
         send_slack_message(message)
         
         return github_result
@@ -108,20 +126,38 @@ def handle_deletion(payload):
             print("Warning: GitHub token not configured")
             return handle_slack_only(payload, 'deletion')
 
+        # Extract the required data from HCP webhook payload
+        event_payload = payload.get('event_payload', {})
+        bucket_data = event_payload.get('bucket', {})
+        version_data = event_payload.get('version', {})
+        
+        # Map HCP payload to GitHub workflow expected format
+        bucket_slug = bucket_data.get('slug', '')
+        iteration_id = version_data.get('id', '')
+        organization_id = event_payload.get('organization_id', '')
+        project_id = event_payload.get('project_id', '')
+        
+        # Get image names
         image_names = extract_image_identifiers(payload, "vsphere")
         
         dispatch_payload = {
             'event_type': 'image_deletion',
             'client_payload': {
+                'bucket_slug': bucket_slug,
+                'iteration_id': iteration_id,
+                'organization_id': organization_id,
+                'project_id': project_id,
                 'image_names': image_names
             }
         }
+        
+        print(f"Sending GitHub dispatch with payload: {dispatch_payload}")
         
         # Send to GitHub
         github_result = dispatch_to_github(dispatch_payload, github_token)
         
         # Send Slack notification
-        message = f'Images have been deleted: {", ".join(image_names)}'
+        message = f'Images have been deleted: {", ".join(image_names)}. Triggering cleanup workflow.'
         send_slack_message(message)
         
         return github_result
