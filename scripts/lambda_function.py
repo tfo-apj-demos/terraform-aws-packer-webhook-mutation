@@ -78,22 +78,23 @@ def handle_revocation(payload):
         version_data = event_payload.get('version', {})
         
         # Map HCP payload to GitHub workflow expected format
-        bucket_slug = bucket_data.get('slug', '')
+        # Use bucket.name since HCP doesn't send bucket.slug in webhook
+        bucket_slug = bucket_data.get('name', '')  # Changed: use 'name' instead of 'slug'
         iteration_id = version_data.get('id', '')  # In HCP, version.id is the iteration ID
         organization_id = event_payload.get('organization_id', '')
         project_id = event_payload.get('project_id', '')
         
-        # Also get image names for reference
+        # Get image names for direct template tagging
         image_names = extract_image_identifiers(payload, "vsphere")
         
         dispatch_payload = {
             'event_type': 'image_revocation',
             'client_payload': {
-                'bucket_slug': bucket_slug,
+                'bucket_slug': bucket_slug,  # This will now contain the bucket name
                 'iteration_id': iteration_id,
                 'organization_id': organization_id,
                 'project_id': project_id,
-                'image_names': image_names  # Keep for debugging/reference
+                'image_names': image_names
             }
         }
         
@@ -105,7 +106,7 @@ def handle_revocation(payload):
         # Send Slack notification
         version_name = version_data.get('name', 'unknown')
         bucket_name = bucket_data.get('name', 'unknown')
-        message = f'Version {version_name} in bucket {bucket_name} has been revoked. Triggering cleanup workflow.'
+        message = f'Version {version_name} in bucket {bucket_name} has been revoked. Templates: {", ".join(image_names)}'
         send_slack_message(message)
         
         return github_result
@@ -132,7 +133,8 @@ def handle_deletion(payload):
         version_data = event_payload.get('version', {})
         
         # Map HCP payload to GitHub workflow expected format
-        bucket_slug = bucket_data.get('slug', '')
+        # Use bucket.name since HCP doesn't send bucket.slug in webhook
+        bucket_slug = bucket_data.get('name', '')  # Changed: use 'name' instead of 'slug'
         iteration_id = version_data.get('id', '')
         organization_id = event_payload.get('organization_id', '')
         project_id = event_payload.get('project_id', '')
@@ -143,7 +145,7 @@ def handle_deletion(payload):
         dispatch_payload = {
             'event_type': 'image_deletion',
             'client_payload': {
-                'bucket_slug': bucket_slug,
+                'bucket_slug': bucket_slug,  # This will now contain the bucket name
                 'iteration_id': iteration_id,
                 'organization_id': organization_id,
                 'project_id': project_id,
